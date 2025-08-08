@@ -1,0 +1,200 @@
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, ActivityIndicator, Image } from 'react-native';
+import { router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+
+export default function Signup() {
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const validateForm = () => {
+    if (!fullName.trim()) {
+      Alert.alert('Error', 'Please enter your full name');
+      return false;
+    }
+    if (!email.trim()) {
+      Alert.alert('Error', 'Please enter your email');
+      return false;
+    }
+    if (!email.includes('@')) {
+      Alert.alert('Error', 'Please enter a valid email address');
+      return false;
+    }
+    if (password.length < 6) {
+      Alert.alert('Error', 'Password must be at least 6 characters long');
+      return false;
+    }
+    if (password !== confirmPassword) {
+      Alert.alert('Error', 'Passwords do not match');
+      return false;
+    }
+    return true;
+  };
+
+  const handleSignup = async () => {
+    if (!validateForm()) return;
+
+    setLoading(true);
+    try {
+      // Simulate loading for better UX
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Store user data locally (in real app, you'd use secure storage)
+      const userData = {
+        id: 'user_' + Date.now(),
+        fullName: fullName.trim(),
+        email: email.trim().toLowerCase(),
+        profileComplete: false,
+      };
+
+      console.log('User registered successfully:', userData);
+      
+      // Navigate to profile setup
+      router.replace('/profile-details');
+      
+    } catch (error) {
+      console.error('Signup error:', error);
+      Alert.alert('Error', 'Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBack = () => {
+    router.back();
+  };
+
+  return (
+    <ScrollView className="flex-1 bg-white">
+      <View className="px-6 pt-12 pb-8">
+        {/* Header */}
+        <View className="flex-row items-center mb-5">
+          <TouchableOpacity onPress={handleBack} className="mr-4">
+            <Ionicons name="arrow-back" size={24} color="gray" />
+          </TouchableOpacity>
+          <Text className="text-xl font-bold text-gray-800">Create Account</Text>
+        </View>
+
+        {/* Logo */}
+        <View className="items-center mb-5">
+        <View className="flex-row justify-center mb-10">
+       <Image source={require('../../assets/images/logo.png')} className="" />
+      </View>
+          <Text className="text-lg text-gray-600 text-center">
+            Join LoveLink and find your perfect match
+          </Text>
+        </View>
+
+        {/* Form */}
+        <View className="space-y-4 flex-col gap-5">
+          {/* Full Name */}
+          <View className="bg-white rounded-lg px-4 border border-gray-300 py-2">
+            <Text className="text-gray-600 text-sm mb-1">Full Name</Text>
+            <TextInput
+              placeholder="Enter your full name "
+              value={fullName}
+              onChangeText={setFullName}
+              className="text-lg"
+              autoCapitalize="words"
+            />
+          </View>
+
+          {/* Email */}
+          <View className="bg-white rounded-lg px-4 border border-gray-300 py-2">
+            <Text className="text-gray-600 text-sm mb-1">Email</Text>
+            <TextInput
+              placeholder="Enter your email"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              className="text-lg"
+            />
+          </View>
+
+          {/* Password */}
+          <View className="bg-white rounded-lg px-4 border border-gray-300 py-2">
+            <Text className="text-gray-600 text-sm mb-1">Password</Text>
+            <View className="flex-row items-center">
+              <TextInput
+                placeholder="Create a password"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+                className="text-lg flex-1"
+              />
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                <Ionicons 
+                  name={showPassword ? "eye-off" : "eye"} 
+                  size={24} 
+                  color="gray" 
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Confirm Password */}
+            <View className="bg-white rounded-lg px-4 border border-gray-300 py-2">
+            <Text className="text-gray-600 text-sm mb-1">Confirm Password</Text>
+            <View className="flex-row items-center">
+              <TextInput
+                placeholder="Confirm your password"
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry={!showConfirmPassword}
+                className="text-lg flex-1"
+              />
+              <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+                <Ionicons 
+                  name={showConfirmPassword ? "eye-off" : "eye"} 
+                  size={24} 
+                  color="gray" 
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+
+        {/* Sign Up Button */}
+        <TouchableOpacity
+          onPress={handleSignup}
+          disabled={loading}
+          className={`py-4 rounded-lg mt-8 ${loading ? 'bg-gray-400' : 'bg-red-500'}`}
+        >
+          {loading ? (
+            <View className="flex-row items-center justify-center">
+              <ActivityIndicator color="white" size="small" />
+              <Text className="text-white text-center font-semibold text-lg ml-2">
+                Creating Account...
+              </Text>
+            </View>
+          ) : (
+            <Text className="text-white text-center font-semibold text-lg">
+              Create Account
+            </Text>
+          )}
+        </TouchableOpacity>
+
+        {/* Terms */}
+        <Text className="text-gray-500 text-center mt-6 text-sm">
+          By creating an account, you agree to our{' '}
+          <Text className="text-red-500">Terms of Service</Text> and{' '}
+          <Text className="text-red-500">Privacy Policy</Text>
+        </Text>
+
+        {/* Already have account */}
+        <View className="flex-row justify-center items-center mt-8">
+          <Text className="text-gray-600">Already have an account? </Text>
+          <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
+            <Text className="text-red-500 font-medium">Sign In</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </ScrollView>
+  );
+}

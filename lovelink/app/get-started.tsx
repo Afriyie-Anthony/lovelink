@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, ScrollView, Dimensions, TouchableOpacity, Animated, Image } from 'react-native';
 import { router } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+//import { Ionicons } from '@expo/vector-icons';
 
 const { width, height } = Dimensions.get('window');
 

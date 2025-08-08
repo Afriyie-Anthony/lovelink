@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { View, Text, TouchableOpacity, Image, Dimensions, Animated, PanResponder } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import FilterModal from '../../components/FilterModal';
 
 const { width, height } = Dimensions.get('window');
 
@@ -35,6 +36,13 @@ const profiles = [
 export default function Discover() {
   const [currentProfileIndex, setCurrentProfileIndex] = useState(0);
   const [swipeDirection, setSwipeDirection] = useState<'left' | 'right' | 'up' | 'down' | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
+  const [activeFilters, setActiveFilters] = useState({
+    interestedIn: 'girls',
+    location: 'Chicago, USA',
+    distance: 40,
+    ageRange: [20, 28],
+  });
   
   // Animation refs
   const slideAnim = useRef(new Animated.Value(height)).current;
@@ -161,7 +169,7 @@ export default function Discover() {
   };
 
   return (
-    <View className="flex-1 bg-gray-100">
+    <View className="flex-1 bg-white">
       {/* Header */}
       <View className="flex-row justify-between items-center px-6 pt-12 pb-4 bg-white border-b border-gray-100">
         <TouchableOpacity className="w-10 h-10 items-center justify-center">
@@ -173,7 +181,10 @@ export default function Discover() {
           <Text className="text-sm text-gray-500">Chicago, IL</Text>
         </View>
         
-        <TouchableOpacity className="w-10 h-10 items-center justify-center">
+        <TouchableOpacity 
+          className="w-10 h-10 items-center justify-center"
+          onPress={() => setShowFilters(true)}
+        >
           <Ionicons name="options" size={24} color="#ef4444" />
         </TouchableOpacity>
       </View>
@@ -365,6 +376,18 @@ export default function Discover() {
           </View>
         </View>
       </View>
+
+      {/* Filter Modal */}
+      <FilterModal
+        visible={showFilters}
+        onClose={() => setShowFilters(false)}
+        onApply={(filters) => {
+          setActiveFilters(filters);
+          setShowFilters(false);
+          // Here you can apply the filters to your data
+          console.log('Applied filters:', filters);
+        }}
+      />
     </View>
   );
 }

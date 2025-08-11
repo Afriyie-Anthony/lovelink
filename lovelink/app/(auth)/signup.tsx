@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, ActivityIndicator, Image } from 'react-native';
-import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import React, { useState } from 'react';
+import { ActivityIndicator, Alert, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function Signup() {
   const [fullName, setFullName] = useState('');
@@ -41,22 +41,29 @@ export default function Signup() {
 
     setLoading(true);
     try {
-      // Simulate loading for better UX
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Store user data locally (in real app, you'd use secure storage)
-      const userData = {
-        id: 'user_' + Date.now(),
-        fullName: fullName.trim(),
-        email: email.trim().toLowerCase(),
-        profileComplete: false,
-      };
+      const response = await fetch('https://lovelink-cjgx.onrender.com/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: fullName.trim(),
+          email: email.trim().toLowerCase(),
+          password: password,
+        }),
+      });
 
-      console.log('User registered successfully:', userData);
-      
-      // Navigate to profile setup
+      const data = await response.json();
+
+      if (!response.ok) {
+        // API error
+        Alert.alert('Signup Failed', data.message || 'Unable to create account.');
+        return;
+      }
+
+      // Success
+      Alert.alert('Success', 'Account created successfully!');
       router.replace('/profile-details');
-      
     } catch (error) {
       console.error('Signup error:', error);
       Alert.alert('Error', 'Something went wrong. Please try again.');

@@ -43,7 +43,7 @@ export default function SplashScreen() {
   }, []);
 
   return (
-    <View className="flex-1 bg-black justify-center items-center">
+    <View className="flex-1 bg-white justify-center items-center">
       <Animated.View style={{ position: 'absolute', top: height * 0.2, left: width * 0.1, opacity: heartAnim1, transform: [{ scale: heartAnim1 }] }}>
         <Ionicons name="heart" size={40} color="rgba(236, 72, 153, 0.3)" />
       </Animated.View>
@@ -65,9 +65,9 @@ export default function SplashScreen() {
           <Image source={require('../assets/images/logo.png')} className="w-36 h-36 rounded-full" />
         </View>
 
-        <Text className="text-4xl font-bold text-gray-800 mb-2 text-white">LoveLink</Text>
+        <Text className="text-4xl font-bold text-gray-800 mb-2">LoveLink</Text>
         
-        <Text className="text-lg text-gray-600 text-center px-8 text-white">Connect hearts, find love</Text>
+        <Text className="text-lg text-gray-600 text-center px-8">Connect hearts, find love</Text>
       </Animated.View>
     </View>
   );

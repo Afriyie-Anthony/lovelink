@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Image, ScrollView, Switch, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuthStore } from '@/store/hooks/useAuthStore';
+import { router } from 'expo-router';
 
 // Mock user data
 const userProfile = {
@@ -24,6 +26,9 @@ const userProfile = {
 };
 
 export default function Profile() {
+   const user = useAuthStore((state) => state.user);
+  const token = useAuthStore((state) => state.token);
+  console.log(user)
   const [settings, setSettings] = useState({
     notifications: true,
     locationSharing: true,
@@ -57,12 +62,16 @@ export default function Profile() {
   };
 
   const handleLogout = () => {
+    useAuthStore.getState().logout();
     Alert.alert(
       'Logout',
       'Are you sure you want to logout?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Logout', style: 'destructive', onPress: () => console.log('Logout') },
+        { text: 'Logout', style: 'destructive', onPress: () =>{ console.log('Logout')
+
+          router.replace('/(auth)/login')}
+         },
       ]
     );
   };

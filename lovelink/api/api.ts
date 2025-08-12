@@ -3,7 +3,7 @@ import Constants from "expo-constants";
 import { useAuthStore } from '@/store/hooks/useAuthStore';
 
 const api = axios.create({
-    baseURL: Constants.expoConfig?.extra?.API_URL || "http://192.168.0.105:5000",
+    baseURL: "https://lovelink-cjgx.onrender.com/api",
     headers: { "Content-Type": "application/json" },
 });
 

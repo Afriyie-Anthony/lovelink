@@ -2,6 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { ActivityIndicator, Alert, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { signUp } from "@/api/auth"; // your updated auth.ts
+import * as ImagePicker from "expo-image-picker";
 
 export default function Signup() {
   const [fullName, setFullName] = useState('');
@@ -11,6 +13,18 @@ export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [profilePicture, setProfilePicture] = useState<any>(null);
+
+  const handleImagePick = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setProfilePicture(result.assets[0]); // store file info in state
+    }
+  };
 
   const validateForm = () => {
     if (!fullName.trim()) {
@@ -33,6 +47,10 @@ export default function Signup() {
       Alert.alert('Error', 'Passwords do not match');
       return false;
     }
+    if (!profilePicture) {
+      Alert.alert('Error', 'Please select a profile picture');
+      return false;
+    }
     return true;
   };
 
@@ -41,32 +59,22 @@ export default function Signup() {
 
     setLoading(true);
     try {
-      const response = await fetch('https://lovelink-cjgx.onrender.com/api/auth/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: fullName.trim(),
-          email: email.trim().toLowerCase(),
-          password: password,
-        }),
+      await signUp({
+        fullName: fullName.trim(),
+        email: email.trim().toLowerCase(),
+        password,
+        profilePicture: {
+          uri: profilePicture.uri,
+          type: "image/jpeg",
+          name: "profile.jpg",
+        } as any, // type assertion for FormData
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        // API error
-        Alert.alert('Signup Failed', data.message || 'Unable to create account.');
-        return;
-      }
-
-      // Success
       Alert.alert('Success', 'Account created successfully!');
       router.replace('/profile-details');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Signup error:', error);
-      Alert.alert('Error', 'Something went wrong. Please try again.');
+      Alert.alert('Error', error?.response?.data?.message || 'Something went wrong.');
     } finally {
       setLoading(false);
     }
@@ -89,9 +97,9 @@ export default function Signup() {
 
         {/* Logo */}
         <View className="items-center mb-5">
-        <View className="flex-row justify-center mb-10">
-       <Image source={require('../../assets/images/logo.png')} className="" />
-      </View>
+          <View className="flex-row justify-center mb-10">
+            <Image source={require('../../assets/images/logo.png')} className="" />
+          </View>
           <Text className="text-lg text-gray-600 text-center">
             Join LoveLink and find your perfect match
           </Text>
@@ -136,17 +144,17 @@ export default function Signup() {
                 className="text-lg flex-1"
               />
               <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                <Ionicons 
-                  name={showPassword ? "eye-off" : "eye"} 
-                  size={24} 
-                  color="gray" 
+                <Ionicons
+                  name={showPassword ? "eye-off" : "eye"}
+                  size={24}
+                  color="gray"
                 />
               </TouchableOpacity>
             </View>
           </View>
 
           {/* Confirm Password */}
-            <View className="bg-white rounded-lg px-4 border border-gray-300 py-2">
+          <View className="bg-white rounded-lg px-4 border border-gray-300 py-2">
             <Text className="text-gray-600 text-sm mb-1">Confirm Password</Text>
             <View className="flex-row items-center">
               <TextInput
@@ -157,14 +165,29 @@ export default function Signup() {
                 className="text-lg flex-1"
               />
               <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
-                <Ionicons 
-                  name={showConfirmPassword ? "eye-off" : "eye"} 
-                  size={24} 
-                  color="gray" 
+                <Ionicons
+                  name={showConfirmPassword ? "eye-off" : "eye"}
+                  size={24}
+                  color="gray"
                 />
               </TouchableOpacity>
             </View>
           </View>
+        </View>
+        <View className="items-center mb-6">
+          <TouchableOpacity onPress={handleImagePick}>
+            {profilePicture ? (
+              <Image
+                source={{ uri: profilePicture.uri }}
+                className="w-24 h-24 rounded-full"
+              />
+            ) : (
+              <View className="w-24 h-24 rounded-full bg-gray-200 items-center justify-center">
+                <Ionicons name="camera" size={32} color="gray" />
+              </View>
+            )}
+          </TouchableOpacity>
+          <Text className="mt-2 text-gray-600 text-sm">Add Profile Picture</Text>
         </View>
 
         {/* Sign Up Button */}

@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, ActivityInd
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
+import { Login as loginService  } from '@/api/auth';
 
 //const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://localhost:3000';
 
@@ -23,15 +24,10 @@ export default function Login() {
     setErrorMessage(null);
 
     try {
-      const response = await axios.post(
-        `https://lovelink-cjgx.onrender.com/api/auth/login`,
-        { email: email.trim(), password },
-        { timeout: 15000, headers: { 'Content-Type': 'application/json' } }
-      );
-
+  const response = await loginService(email.trim(), password);
       // Common response shapes: { token, user } or { data: { token, user } }
       const payload: any = response?.data ?? {};
-      const token = payload.token || payload.accessToken || payload?.data?.token || payload?.data?.accessToken;
+      const token = response.token
 
       if (!token) {
         throw new Error('Login succeeded but no token was returned by the API.');

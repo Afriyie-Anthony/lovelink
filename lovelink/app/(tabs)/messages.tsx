@@ -1,16 +1,31 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Image, ScrollView, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import React, { useState } from 'react';
+import { Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
-// Mock data
-const activities = [
+
+type Activity = {
+  id: number;
+  name: string;
+  image: any;
+};
+
+type MessageContact = {
+  id: number;
+  name: string;
+  image: any;
+  lastMessage: string;
+  time: string;
+  unread: number;
+};
+
+const activities: Activity[] = [
   { id: 1, name: 'You', image: require('../../assets/images/girl1.png') },
   { id: 2, name: 'Emma', image: require('../../assets/images/girl2.png') },
   { id: 3, name: 'Ava', image: require('../../assets/images/girl3.png') },
   { id: 4, name: 'Sophia', image: require('../../assets/images/girl1.png') },
 ];
 
-const messages = [
+const messages: MessageContact[] = [
   {
     id: 1,
     name: 'Emelie',
@@ -64,7 +79,7 @@ const messages = [
 export default function Messages() {
   const [searchText, setSearchText] = useState('');
   const [showChat, setShowChat] = useState(false);
-  const [selectedContact, setSelectedContact] = useState(null);
+  const [selectedContact, setSelectedContact] = useState<MessageContact | null>(null);
   const [message, setMessage] = useState('');
   const [chatMessages, setChatMessages] = useState([
     {

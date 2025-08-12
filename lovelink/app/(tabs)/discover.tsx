@@ -1,121 +1,179 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { View, Text, TouchableOpacity, Image, Dimensions, Animated, PanResponder } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+
+
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { View, Text, TouchableOpacity, Image, Animated, Dimensions, PanResponder } from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import axios from 'axios';
 import FilterModal from '../../components/FilterModal';
 
-const { width, height } = Dimensions.get('window');
-
-// Mock profile data
-const profiles = [
-  {
-    id: 1,
-    name: 'Jessica Parker',
-    age: 23,
-    profession: 'Professional model',
-    image: require('../../assets/images/girl1.png'),
-    distance: '1 km',
-  },
-  {
-    id: 2,
-    name: 'Camila Snow',
-    age: 23,
-    profession: 'Marketer',
-    image: require('../../assets/images/girl2.png'),
-    distance: '2 km',
-  },
-  {
-    id: 3,
-    name: 'Bred Jackson',
-    age: 25,
-    profession: 'Photographer',
-    image: require('../../assets/images/girl3.png'),
-    distance: '3 km',
-  },
-];
+const { width } = Dimensions.get('window');
 
 export default function Discover() {
+  const [profiles, setProfiles] = useState<any[]>([]);
   const [currentProfileIndex, setCurrentProfileIndex] = useState(0);
-  const [swipeDirection, setSwipeDirection] = useState<'left' | 'right' | 'up' | 'down' | null>(null);
+  const [swipeDirection, setSwipeDirection] = useState<'left' | 'right' | null>(null);
   const [showFilters, setShowFilters] = useState(false);
-  const [activeFilters, setActiveFilters] = useState({
-    interestedIn: 'girls',
-    location: 'Chicago, USA',
-    distance: 40,
-    ageRange: [20, 28],
-  });
-  
-  // Animation refs
-  const slideAnim = useRef(new Animated.Value(height)).current;
+  const slideAnim = useRef(new Animated.Value(width)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
-  const panY = useRef(new Animated.Value(0)).current;
+  const panX = useRef(new Animated.Value(0)).current;
 
-  const currentProfile = profiles[currentProfileIndex];
+  // Default discover filters
+  const discoverFilters = {
+    lat: 40.7128,
+    lng: -74.0060,
+    maxDistanceKm: 50,
+    minAge: 25,
+    maxAge: 35,
+    profession: 'Engineer',
+    limit: 20,
+    page: 1,
+  };
+
+  // Fetch profiles from backend API using axios
+  useEffect(() => {
+    const fetchProfiles = async () => {
+      try {
+        const params = new URLSearchParams(discoverFilters as any).toString();
+        const response = await axios.get(`https://lovelink-cjgx.onrender.com/api/discover?${params}`);
+        const data = response.data;
+        setProfiles((data.profiles || data) as any[]);
+        setCurrentProfileIndex(0);
+      } catch (err) {
+        setProfiles([]);
+      }
+    };
+    fetchProfiles();
+  }, []);
+
+  const currentProfile = profiles[currentProfileIndex] || {};
 
   const handleNext = useCallback(() => {
-    setSwipeDirection('up');
-    // Reset animations for next card
-    slideAnim.setValue(height);
-    fadeAnim.setValue(0);
-    scaleAnim.setValue(0.8);
-    
-    setTimeout(() => {
+    setSwipeDirection('right');
+    Animated.parallel([
+      Animated.spring(slideAnim, {
+        toValue: width,
+        tension: 40,
+        friction: 7,
+        useNativeDriver: true,
+      }),
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 0.8,
+        tension: 40,
+        friction: 7,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
       setCurrentProfileIndex((prev) => (prev + 1) % profiles.length);
       setSwipeDirection(null);
-    }, 300);
-  }, [slideAnim, fadeAnim, scaleAnim]);
+      slideAnim.setValue(width);
+      fadeAnim.setValue(0);
+      scaleAnim.setValue(0.8);
+      Animated.parallel([
+        Animated.spring(slideAnim, {
+          toValue: 0,
+          tension: 50,
+          friction: 8,
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          tension: 50,
+          friction: 7,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    });
+  }, [slideAnim, fadeAnim, scaleAnim, profiles.length]);
 
   const handlePrevious = useCallback(() => {
-    setSwipeDirection('down');
-    // Reset animations for previous card
-    slideAnim.setValue(-height);
-    fadeAnim.setValue(0);
-    scaleAnim.setValue(0.8);
-    
-    setTimeout(() => {
+    setSwipeDirection('left');
+    Animated.parallel([
+      Animated.spring(slideAnim, {
+        toValue: -width,
+        tension: 40,
+        friction: 7,
+        useNativeDriver: true,
+      }),
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 0.8,
+        tension: 40,
+        friction: 7,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
       setCurrentProfileIndex((prev) => (prev - 1 + profiles.length) % profiles.length);
       setSwipeDirection(null);
-    }, 300);
-  }, [slideAnim, fadeAnim, scaleAnim]);
+      slideAnim.setValue(-width);
+      fadeAnim.setValue(0);
+      scaleAnim.setValue(0.8);
+      Animated.parallel([
+        Animated.spring(slideAnim, {
+          toValue: 0,
+          tension: 50,
+          friction: 8,
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          tension: 50,
+          friction: 7,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    });
+  }, [slideAnim, fadeAnim, scaleAnim, profiles.length]);
 
-  // Pan responder for vertical scrolling
   const panResponder = useMemo(() => 
     PanResponder.create({
       onMoveShouldSetPanResponder: (evt, gestureState) => {
-        return Math.abs(gestureState.dy) > Math.abs(gestureState.dx) && Math.abs(gestureState.dy) > 10;
+        return Math.abs(gestureState.dx) > Math.abs(gestureState.dy) && Math.abs(gestureState.dx) > 10;
       },
       onPanResponderGrant: () => {
-        panY.setOffset((panY as any)._value);
+        panX.setOffset((panX as any)._value);
       },
       onPanResponderMove: (evt, gestureState) => {
-        panY.setValue(gestureState.dy);
+        panX.setValue(gestureState.dx);
       },
       onPanResponderRelease: (evt, gestureState) => {
-        panY.flattenOffset();
-        
-        if (Math.abs(gestureState.dy) > 50) {
-          if (gestureState.dy > 0) {
-            // Swipe down - go to previous profile
-            handlePrevious();
-          } else {
-            // Swipe up - go to next profile
+        panX.flattenOffset();
+        if (Math.abs(gestureState.dx) > 50) {
+          if (gestureState.dx > 0) {
             handleNext();
+          } else {
+            handlePrevious();
           }
         } else {
-          // Return to center
-          Animated.spring(panY, {
+          Animated.spring(panX, {
             toValue: 0,
             useNativeDriver: true,
           }).start();
         }
       },
-    }), [handleNext, handlePrevious, panY]);
+    }), [handleNext, handlePrevious, panX]);
 
   useEffect(() => {
-    // Reset pan animation
-    panY.setValue(0);
-    
-    // Animate card entrance from bottom
+    panX.setValue(0);
     Animated.parallel([
       Animated.spring(slideAnim, {
         toValue: 0,
@@ -135,37 +193,14 @@ export default function Discover() {
         useNativeDriver: true,
       }),
     ]).start();
-  }, [currentProfileIndex]);
+  }, [currentProfileIndex, slideAnim, fadeAnim, scaleAnim, panX]);
 
-  const handleLike = () => {
-    setSwipeDirection('right');
-    // Reset animations for next card
-    slideAnim.setValue(height);
-    fadeAnim.setValue(0);
-    scaleAnim.setValue(0.8);
-    
-    setTimeout(() => {
-      setCurrentProfileIndex((prev) => (prev + 1) % profiles.length);
-      setSwipeDirection(null);
-    }, 300);
-  };
-
-  const handleDislike = () => {
-    setSwipeDirection('left');
-    // Reset animations for next card
-    slideAnim.setValue(height);
-    fadeAnim.setValue(0);
-    scaleAnim.setValue(0.8);
-    
-    setTimeout(() => {
-      setCurrentProfileIndex((prev) => (prev + 1) % profiles.length);
-      setSwipeDirection(null);
-    }, 300);
-  };
-
+  const handleLike = () => handleNext();
+  const handleDislike = () => handlePrevious();
   const handleSuperLike = () => {
-    // Handle super like
-    console.log('Super like:', currentProfile.name);
+    if (currentProfile && currentProfile.name) {
+      console.log('Super like:', currentProfile.name);
+    }
   };
 
   return (
@@ -175,12 +210,10 @@ export default function Discover() {
         <TouchableOpacity className="w-10 h-10 items-center justify-center">
           <Ionicons name="arrow-back" size={24} color="#ef4444" />
         </TouchableOpacity>
-        
         <View className="items-center">
           <Text className="text-xl font-bold text-gray-800">Discover</Text>
           <Text className="text-sm text-gray-500">Chicago, IL</Text>
         </View>
-        
         <TouchableOpacity 
           className="w-10 h-10 items-center justify-center"
           onPress={() => setShowFilters(true)}
@@ -188,14 +221,13 @@ export default function Discover() {
           <Ionicons name="options" size={24} color="#ef4444" />
         </TouchableOpacity>
       </View>
-
       {/* Profile Card */}
       <View className="flex-1 px-4 pt-2">
         <Animated.View 
           className="flex-1 relative"
           style={{
             transform: [
-              { translateY: Animated.add(slideAnim, panY) },
+              { translateX: Animated.add(slideAnim, panX) },
               { scale: scaleAnim }
             ],
             opacity: fadeAnim
@@ -205,14 +237,8 @@ export default function Discover() {
           <View 
             className={`flex-1 bg-white rounded-3xl overflow-hidden shadow-2xl ${
               swipeDirection === 'left' ? 'transform rotate-12 translate-x-20' :
-              swipeDirection === 'right' ? 'transform -rotate-12 -translate-x-20' :
-              swipeDirection === 'up' ? 'transform -translate-y-20' :
-              swipeDirection === 'down' ? 'transform translate-y-20' : ''
+              swipeDirection === 'right' ? 'transform -rotate-12 -translate-x-20' : ''
             }`}
-            style={{ 
-              borderWidth: 3,
-              borderColor: '#3b82f6'
-            }}
           >
             {/* Full Screen Profile Image */}
             <View className="flex-1 relative">
@@ -221,13 +247,11 @@ export default function Discover() {
                 className="w-full h-full"
                 resizeMode="cover"
               />
-              
               {/* Distance Tag */}
               <View className="absolute top-6 left-6 bg-black/70 rounded-full px-3 py-2 flex-row items-center">
                 <Ionicons name="location" size={14} color="white" />
                 <Text className="text-white text-sm font-medium ml-1">{currentProfile.distance}</Text>
               </View>
-
               {/* Photo Indicator Dots */}
               <View className="absolute top-6 right-6">
                 <View className="space-y-2">
@@ -241,48 +265,30 @@ export default function Discover() {
                   ))}
                 </View>
               </View>
-
               {/* Profile Info Overlay - Bottom */}
               <View className="absolute bottom-0 left-0 right-0">
-                {/* Profile Information with Glassmorphism */}
                 <View className="rounded-t-2xl overflow-hidden">
-                  {/* Multiple layered backgrounds for glassmorphism effect */}
                   <View 
                     className="absolute inset-0 rounded-2xl"
-                    style={{
-                      backgroundColor: 'rgba(255, 255, 255, 0.25)',
-                    }}
+                    style={{ backgroundColor: 'rgba(255, 255, 255, 0.25)' }}
                   />
                   <View 
                     className="absolute inset-0 rounded-2xl"
-                    style={{
-                      backgroundColor: 'rgba(167, 167, 167, 0.3)',
-                    }}
+                    style={{ backgroundColor: 'rgba(167, 167, 167, 0.3)' }}
                   />
                   <View 
                     className="absolute inset-0 rounded-2xl"
-                    style={{
-                      borderWidth: 1,
-                      borderColor: 'rgba(255, 255, 255, 0.43)',
-                    }}
+                    style={{ borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.43)' }}
                   />
-                  
-                  {/* Shimmer effect overlay */}
                   <View 
                     className="absolute inset-0 rounded-2xl"
-                    style={{
-                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                    }}
+                    style={{ backgroundColor: 'rgba(255, 255, 255, 0.05)' }}
                   />
-                  
                   <View 
                     className="px-6 py-5 relative"
                     style={{
                       shadowColor: '#000',
-                      shadowOffset: {
-                        width: 0,
-                        height: 4,
-                      },
+                      shadowOffset: { width: 0, height: 4 },
                       shadowOpacity: 0.25,
                       shadowRadius: 12,
                       elevation: 6,
@@ -311,27 +317,20 @@ export default function Discover() {
                   </View>
                 </View>
               </View>
-
               {/* Swipe Action Overlay */}
               {swipeDirection && (
                 <View className="absolute inset-0 items-center justify-center bg-black/20">
                   <Animated.View 
                     className={`w-24 h-24 rounded-full items-center justify-center ${
                       swipeDirection === 'right' ? 'bg-red-500' : 
-                      swipeDirection === 'left' ? 'bg-orange-500' :
-                      swipeDirection === 'up' ? 'bg-blue-500' :
-                      swipeDirection === 'down' ? 'bg-green-500' : 'bg-gray-500'
+                      swipeDirection === 'left' ? 'bg-orange-500' : 'bg-gray-500'
                     }`}
-                    style={{
-                      transform: [{ scale: fadeAnim }]
-                    }}
+                    style={{ transform: [{ scale: fadeAnim }] }}
                   >
                     <Ionicons 
                       name={
                         swipeDirection === 'right' ? 'heart' : 
-                        swipeDirection === 'left' ? 'close' :
-                        swipeDirection === 'up' ? 'chevron-up' :
-                        swipeDirection === 'down' ? 'chevron-down' : 'help'
+                        swipeDirection === 'left' ? 'close' : 'help'
                       } 
                       size={44} 
                       color="white" 
@@ -342,7 +341,6 @@ export default function Discover() {
             </View>
           </View>
         </Animated.View>
-
         {/* Action Buttons */}
         <View className="flex-row justify-center items-center py-8 px-4">
           <View className="flex-row items-center gap-12">
@@ -353,19 +351,13 @@ export default function Discover() {
             >
               <Ionicons name="close" size={28} color="#f97316" />
             </TouchableOpacity>
-
             <TouchableOpacity
               onPress={handleLike}
               className="w-18 h-18 bg-white rounded-full items-center justify-center shadow-xl border border-gray-200"
-              style={{ 
-                elevation: 6,
-                width: 72,
-                height: 72 
-              }}
+              style={{ elevation: 6, width: 72, height: 72 }}
             >
               <Ionicons name="heart" size={32} color="#ef4444" />
             </TouchableOpacity>
-
             <TouchableOpacity
               onPress={handleSuperLike}
               className="w-14 h-14 bg-white rounded-full items-center justify-center shadow-lg border border-gray-200"
@@ -376,16 +368,12 @@ export default function Discover() {
           </View>
         </View>
       </View>
-
       {/* Filter Modal */}
       <FilterModal
         visible={showFilters}
         onClose={() => setShowFilters(false)}
-        onApply={(filters) => {
-          setActiveFilters(filters);
+        onApply={() => {
           setShowFilters(false);
-          // Here you can apply the filters to your data
-          console.log('Applied filters:', filters);
         }}
       />
     </View>

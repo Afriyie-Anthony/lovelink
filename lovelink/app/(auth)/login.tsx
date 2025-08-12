@@ -1,17 +1,54 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import axios from 'axios';
+
+//const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://localhost:3000';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleLogin = () => {
-    // Handle login logic here
-    console.log('Login:', { email, password });
-    router.replace('/(tabs)/discover');
+  const handleLogin = async () => {
+    if (!email || !password) {
+      setErrorMessage('Please enter your email and password.');
+      return;
+    }
+
+    setIsLoading(true);
+    setErrorMessage(null);
+
+    try {
+      const response = await axios.post(
+        `https://lovelink-cjgx.onrender.com/api/auth/login`,
+        { email: email.trim(), password },
+        { timeout: 15000, headers: { 'Content-Type': 'application/json' } }
+      );
+
+      // Common response shapes: { token, user } or { data: { token, user } }
+      const payload: any = response?.data ?? {};
+      const token = payload.token || payload.accessToken || payload?.data?.token || payload?.data?.accessToken;
+
+      if (!token) {
+        throw new Error('Login succeeded but no token was returned by the API.');
+      }
+
+      // If you want to persist the token, integrate AsyncStorage/SecureStore here
+      // await AsyncStorage.setItem('authToken', token);
+
+      router.replace('/(tabs)/discover');
+    } catch (err: any) {
+      // Axios error normalization
+      const apiMessage = err?.response?.data?.message || err?.response?.data?.error;
+      const networkMessage = err?.message;
+      setErrorMessage(apiMessage || networkMessage || 'Login failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleForgotPassword = () => {
@@ -19,8 +56,8 @@ export default function Login() {
   };
 
   const handleSocialLogin = (provider: string) => {
+    // Replace with your social login flow
     console.log(`${provider} login`);
-    // Handle social login
   };
 
   return (
@@ -36,7 +73,7 @@ export default function Login() {
         </View>
 
         {/* Login Form */}
-        <View className="flex-col gap-10 mb-8">
+        <View className="flex-col gap-10 mb-4">
           <View className="bg-white rounded-lg px-4 border border-gray-300 py-2">
             <Text className="text-gray-600 text-sm mb-1">Email</Text>
             <TextInput
@@ -46,6 +83,7 @@ export default function Login() {
               keyboardType="email-address"
               autoCapitalize="none"
               className="text-lg"
+              autoComplete="email"
             />
           </View>
 
@@ -58,10 +96,11 @@ export default function Login() {
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
                 className="text-lg flex-1"
+                autoComplete="password"
               />
               <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
                 <Ionicons 
-                  name={showPassword ? "eye-off" : "eye"} 
+                  name={showPassword ? 'eye-off' : 'eye'} 
                   size={24} 
                   color="gray" 
                 />
@@ -69,6 +108,13 @@ export default function Login() {
             </View>
           </View>
         </View>
+
+        {/* Error message */}
+        {errorMessage ? (
+          <View className="mb-4">
+            <Text className="text-red-600 text-center">{errorMessage}</Text>
+          </View>
+        ) : null}
 
         {/* Forgot Password */}
         <TouchableOpacity onPress={handleForgotPassword} className="mb-8">
@@ -78,15 +124,23 @@ export default function Login() {
         {/* Login Button */}
         <TouchableOpacity
           onPress={handleLogin}
-          className="bg-red-500 py-4 rounded-lg mb-8"
+          className={`py-4 rounded-lg mb-8 ${isLoading ? 'bg-red-400' : 'bg-red-500'}`}
+          disabled={isLoading}
         >
-          <Text className="text-white text-center font-semibold text-lg">Sign In</Text>
+          {isLoading ? (
+            <View className="flex-row items-center justify-center">
+              <ActivityIndicator color="#fff" />
+              <Text className="text-white text-center font-semibold text-lg ml-2">Signing in...</Text>
+            </View>
+          ) : (
+            <Text className="text-white text-center font-semibold text-lg">Sign In</Text>
+          )}
         </TouchableOpacity>
 
         {/* Social Login */}
         <View className="items-center mb-8">
           <Text className="text-gray-500 text-sm mb-4">Or continue with</Text>
-          <View className="flex-row flex-row gap-10">
+          <View className="flex-row gap-10">
             <TouchableOpacity
               onPress={() => handleSocialLogin('Google')}
               className="w-16 h-16 bg-white border border-gray-300 rounded-lg items-center justify-center"
@@ -104,7 +158,7 @@ export default function Login() {
 
         {/* Sign Up Link */}
         <View className="flex-row justify-center items-center">
-          <Text className="text-gray-600">Don't have an account? </Text>
+          <Text className="text-gray-600">Don&apos;t have an account? </Text>
           <TouchableOpacity onPress={() => router.push('/(auth)/signup-options')}>
             <Text className="text-red-500 font-medium">Sign Up</Text>
           </TouchableOpacity>

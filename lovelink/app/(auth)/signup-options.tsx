@@ -14,7 +14,7 @@ export default function SignupOptions() {
   // };
 
   const handleManualSignup = () => {
-    router.push('/(auth)/signup');
+    router.push('/profile-details');
   };
 
   const handleSocialSignup = (provider: string) => {
@@ -68,11 +68,11 @@ export default function SignupOptions() {
         </View>
 
         {/* Separator */}
-        <View className="flex-row items-center mb-8">
+        {/* <View className="flex-row items-center mb-8">
           <View className="flex-1 h-px bg-gray-300" />
-          <Text className="mx-4 text-gray-500 text-sm">or sign up with</Text>
+         
           <View className="flex-1 h-px bg-gray-300" />
-        </View>
+        </View> */}
 
         {/* Social Login Options */}
         <View className="flex-row justify-center gap-12 mb-8">
@@ -82,20 +82,20 @@ export default function SignupOptions() {
           >
             <Ionicons name="logo-facebook" size={24} color="#1877F2" />
           </TouchableOpacity> */}
-
+{/* 
           <TouchableOpacity
             onPress={() => handleSocialSignup('Google')}
             className="w-16 h-16 bg-white border border-gray-300 rounded-lg items-center justify-center"
           >
             <Ionicons name="logo-google" size={24} color="#DB4437" />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
-          <TouchableOpacity
+          {/* <TouchableOpacity
             onPress={() => handleSocialSignup('Apple')}
             className="w-16 h-16 bg-white border border-gray-300 rounded-lg items-center justify-center"
           >
             <Ionicons name="logo-apple" size={24} color="#000000" />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </View>
 

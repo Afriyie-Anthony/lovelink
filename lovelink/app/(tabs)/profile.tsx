@@ -1,34 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Image, ScrollView, Switch, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useAuthStore } from '@/store/hooks/useAuthStore';
+import { useAuthStore, useUserStorage } from '@/store/hooks/useAuthStore';
 import { router } from 'expo-router';
+import { getUser } from '@/api/auth';
+import { ProfileData } from '@/store/types/Auth';
+
+
 
 // Mock user data
-const userProfile = {
-  name: 'Jake Anderson',
-  age: 25,
-  location: 'Chicago, IL',
-  bio: 'Adventure seeker and coffee enthusiast. Looking for someone to share life\'s beautiful moments with. ☕️✨',
-  photos: [
-    require('../../assets/images/girl1.png'),
-    require('../../assets/images/girl2.png'),
-    require('../../assets/images/girl3.png'),
-    require('../../assets/images/image1.png'),
-  ],
-  interests: ['Travel', 'Photography', 'Coffee', 'Hiking', 'Music', 'Cooking'],
-  profession: 'Software Engineer',
-  education: 'University of Illinois',
-  height: '6\'0"',
-  zodiac: 'Libra',
-  lookingFor: 'Long-term relationship',
-  distance: '25 miles',
-};
+
 
 export default function Profile() {
-   const user = useAuthStore((state) => state.user);
-  const token = useAuthStore((state) => state.token);
-  console.log(user)
+  const token = useAuthStore.getState().token
+  
+  useEffect(() => {
+   
+    const fetchUserProfile = async () => {
+      try {
+        const userId = useAuthStore.getState().user?.id
+        console.log("Log User id", userId)
+        const data = await getUser(userId || "id")
+        // console.log(data)
+        //  useUserStorage.getState().setUser(data.user)
+
+      } catch (error) {
+        console.error(error)
+        Alert.alert("Error , Failed to retriever user data")
+      }
+    }
+    fetchUserProfile()
+  }, [token])
+  //  hit api to get user data
+const user = useUserStorage.getState().user 
+console.log("user",user)
+
   const [settings, setSettings] = useState({
     notifications: true,
     locationSharing: true,
@@ -68,13 +74,22 @@ export default function Profile() {
       'Are you sure you want to logout?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Logout', style: 'destructive', onPress: () =>{ console.log('Logout')
+        {
+          text: 'Logout', style: 'destructive', onPress: () => {
+            console.log('Logout')
 
-          router.replace('/(auth)/login')}
-         },
+            router.replace('/(auth)/login')
+          }
+        },
       ]
     );
   };
+
+  console.log("profile data:", useUserStorage.getState().user)
+  const handleCompleteProfile = () => {
+
+    router.push('/profile-details')
+  }
 
   const ProfileSection = ({ title, children }: { title: string; children: React.ReactNode }) => (
     <View className="mb-6">
@@ -82,15 +97,33 @@ export default function Profile() {
       {children}
     </View>
   );
-
-  const SettingItem = ({ 
-    icon, 
-    title, 
-    subtitle, 
-    value, 
-    onToggle, 
+  const userProfile = {
+    name: user?.fullName || 'Jake Anderson',
+    age: user?.age || 25,
+    location: user?.locate || 'Chicago, IL',
+    bio: 'Adventure seeker and coffee enthusiast. Looking for someone to share life\'s beautiful moments with. ☕️✨',
+    photos: [
+      { uri: user?.profilePicture },
+      require('../../assets/images/girl2.png'),
+      require('../../assets/images/girl3.png'),
+      require('../../assets/images/image1.png'),
+    ],
+    interests: ['Travel', 'Photography', 'Coffee', 'Hiking', 'Music', 'Cooking'],
+    profession: 'Software Engineer',
+    education: 'University of Illinois',
+    height: '6\'0"',
+    zodiac: 'Libra',
+    lookingFor: 'Long-term relationship',
+    distance: '25 miles',
+  };
+  const SettingItem = ({
+    icon,
+    title,
+    subtitle,
+    value,
+    onToggle,
     showSwitch = false,
-    onPress 
+    onPress
   }: {
     icon: string;
     title: string;
@@ -100,7 +133,7 @@ export default function Profile() {
     showSwitch?: boolean;
     onPress?: () => void;
   }) => (
-    <TouchableOpacity 
+    <TouchableOpacity
       className="flex-row items-center justify-between px-4 py-3 bg-white border-b border-gray-100"
       onPress={onPress}
       disabled={showSwitch}
@@ -142,21 +175,20 @@ export default function Profile() {
         <ProfileSection title="Photos">
           <View className="px-4">
             <View className="bg-white rounded-2xl overflow-hidden shadow-sm">
-              <Image 
-                source={userProfile.photos[selectedPhotoIndex]} 
+              <Image
+                source={userProfile.photos[selectedPhotoIndex]}
                 className="w-full h-80"
                 resizeMode="cover"
               />
-              
+
               {/* Photo indicators */}
               <View className="absolute bottom-4 left-0 right-0">
                 <View className="flex-row justify-center space-x-2">
                   {userProfile.photos.map((_, index) => (
                     <View
                       key={index}
-                      className={`w-2 h-2 rounded-full ${
-                        index === selectedPhotoIndex ? 'bg-white' : 'bg-white/40'
-                      }`}
+                      className={`w-2 h-2 rounded-full ${index === selectedPhotoIndex ? 'bg-white' : 'bg-white/40'
+                        }`}
                     />
                   ))}
                 </View>
@@ -185,9 +217,8 @@ export default function Profile() {
                 <TouchableOpacity
                   key={index}
                   onPress={() => setSelectedPhotoIndex(index)}
-                  className={`flex-1 h-16 rounded-lg overflow-hidden border-2 ${
-                    index === selectedPhotoIndex ? 'border-red-500' : 'border-gray-200'
-                  }`}
+                  className={`flex-1 h-16 rounded-lg overflow-hidden border-2 ${index === selectedPhotoIndex ? 'border-red-500' : 'border-gray-200'
+                    }`}
                 >
                   <Image source={photo} className="w-full h-full" resizeMode="cover" />
                 </TouchableOpacity>
@@ -209,7 +240,7 @@ export default function Profile() {
               <Text className="text-2xl font-bold text-gray-800">{userProfile.name}, {userProfile.age}</Text>
               <Text className="text-gray-500 mt-1">{userProfile.profession}</Text>
             </View>
-            
+
             <View className="px-4 py-3 border-b border-gray-100">
               <Text className="text-gray-800">{userProfile.bio}</Text>
             </View>
@@ -318,6 +349,12 @@ export default function Profile() {
               title="Help & Support"
               subtitle="Get help and contact support"
               onPress={handleHelp}
+            />
+            <SettingItem
+              icon="person"
+              title="Complete Profile"
+              subtitle="Complete your profile"
+              onPress={handleCompleteProfile}
             />
             <SettingItem
               icon="log-out"

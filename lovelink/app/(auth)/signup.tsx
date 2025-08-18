@@ -15,6 +15,7 @@ export default function Signup() {
   const [loading, setLoading] = useState(false);
   const [profilePicture, setProfilePicture] = useState<any>(null);
 
+
   const handleImagePick = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
@@ -27,10 +28,7 @@ export default function Signup() {
   };
 
   const validateForm = () => {
-    if (!fullName.trim()) {
-      Alert.alert('Error', 'Please enter your full name');
-      return false;
-    }
+   
     if (!email.trim()) {
       Alert.alert('Error', 'Please enter your email');
       return false;
@@ -47,10 +45,10 @@ export default function Signup() {
       Alert.alert('Error', 'Passwords do not match');
       return false;
     }
-    if (!profilePicture) {
-      Alert.alert('Error', 'Please select a profile picture');
-      return false;
-    }
+    // if (!profilePicture) {
+    //   Alert.alert('Error', 'Please select a profile picture');
+    //   return false;
+    // }
     return true;
   };
 
@@ -60,21 +58,17 @@ export default function Signup() {
     setLoading(true);
     try {
       await signUp({
-        fullName: fullName.trim(),
+        
         email: email.trim().toLowerCase(),
         password,
-        profilePicture: {
-          uri: profilePicture.uri,
-          type: "image/jpeg",
-          name: "profile.jpg",
-        } as any, // type assertion for FormData
+      
       });
 
       Alert.alert('Success', 'Account created successfully!');
-      router.replace('/profile-details');
+      router.replace('/discover');
     } catch (error: any) {
-      console.error('Signup error:', error);
-      Alert.alert('Error', error?.response?.data?.message || 'Something went wrong.');
+      console.log(error)
+      Alert.alert( error.response.data.message || 'Something went wrong.');
     } finally {
       setLoading(false);
     }
@@ -108,7 +102,7 @@ export default function Signup() {
         {/* Form */}
         <View className="space-y-4 flex-col gap-5">
           {/* Full Name */}
-          <View className="bg-white rounded-lg px-4 border border-gray-300 py-2">
+          {/* <View className="bg-white rounded-lg px-4 border border-gray-300 py-2">
             <Text className="text-gray-600 text-sm mb-1">Full Name</Text>
             <TextInput
               placeholder="Enter your full name "
@@ -117,31 +111,31 @@ export default function Signup() {
               className="text-lg"
               autoCapitalize="words"
             />
-          </View>
+          </View> */}
 
           {/* Email */}
-          <View className="bg-white rounded-lg px-4 border border-gray-300 py-2">
-            <Text className="text-gray-600 text-sm mb-1">Email</Text>
+          <View className="">
+            <Text className="text-gray-600 text-sm mb-2">Email</Text>
             <TextInput
               placeholder="Enter your email"
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
               autoCapitalize="none"
-              className="text-lg"
+              className="bg-white border border-gray-300 rounded-lg px-4 py-5 text-lg"
             />
           </View>
 
           {/* Password */}
-          <View className="bg-white rounded-lg px-4 border border-gray-300 py-2">
-            <Text className="text-gray-600 text-sm mb-1">Password</Text>
+          <View className="">
+            <Text className="text-gray-600 text-sm mb-2">Password</Text>
             <View className="flex-row items-center">
               <TextInput
                 placeholder="Create a password"
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
-                className="text-lg flex-1"
+                className=" flex-1 bg-white border border-gray-300 rounded-lg px-4 py-3 text-lg"
               />
               <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
                 <Ionicons
@@ -154,15 +148,15 @@ export default function Signup() {
           </View>
 
           {/* Confirm Password */}
-          <View className="bg-white rounded-lg px-4 border border-gray-300 py-2">
-            <Text className="text-gray-600 text-sm mb-1">Confirm Password</Text>
+          <View className="">
+            <Text className="text-gray-600 text-sm mb-2">Password</Text>
             <View className="flex-row items-center">
               <TextInput
                 placeholder="Confirm your password"
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
                 secureTextEntry={!showConfirmPassword}
-                className="text-lg flex-1"
+                 className=" flex-1 bg-white border border-gray-300 rounded-lg px-4 py-3 text-lg"
               />
               <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
                 <Ionicons
@@ -174,21 +168,21 @@ export default function Signup() {
             </View>
           </View>
         </View>
-        <View className="items-center mb-6">
+        {/* <View className="items-center mb-6">
           <TouchableOpacity onPress={handleImagePick}>
             {profilePicture ? (
               <Image
                 source={{ uri: profilePicture.uri }}
-                className="w-24 h-24 rounded-full"
+               className="absolute bottom-0 right-0 w-8 h-8 bg-red-500 rounded-full items-center justify-center"
               />
             ) : (
               <View className="w-24 h-24 rounded-full bg-gray-200 items-center justify-center">
-                <Ionicons name="camera" size={32} color="gray" />
+                <Ionicons name="camera" size={32} color="white" />
               </View>
             )}
           </TouchableOpacity>
           <Text className="mt-2 text-gray-600 text-sm">Add Profile Picture</Text>
-        </View>
+        </View> */}
 
         {/* Sign Up Button */}
         <TouchableOpacity

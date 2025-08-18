@@ -78,7 +78,7 @@ export default function Login() {
               onChangeText={setEmail}
               keyboardType="email-address"
               autoCapitalize="none"
-              className="text-lg"
+              className="text-lg py-1"
               autoComplete="email"
             />
           </View>
@@ -91,7 +91,7 @@ export default function Login() {
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
-                className="text-lg flex-1"
+                className="text-lg flex-1 py-1"
                 autoComplete="password"
               />
               <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>

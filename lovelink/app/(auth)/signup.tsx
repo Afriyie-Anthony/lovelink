@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { ActivityIndicator, Alert, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { signUp } from "@/api/auth"; // your updated auth.ts
 import * as ImagePicker from "expo-image-picker";
+import { useAuthStore } from '@/store/hooks/useAuthStore';
 
 export default function Signup() {
   const [fullName, setFullName] = useState('');
@@ -14,6 +15,8 @@ export default function Signup() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [profilePicture, setProfilePicture] = useState<any>(null);
+
+
 
 
   const handleImagePick = async () => {

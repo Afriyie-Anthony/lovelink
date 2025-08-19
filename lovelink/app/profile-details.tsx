@@ -50,6 +50,7 @@ export default function ProfileDetails() {
       setSelectedMonth(birthDate.getMonth());
       setSelectedDay(birthDate.getDate());
     }
+    // useAuthStore.getState().clearToken()
   }, [birthDate]);
 
   const getDaysInMonth = (year: number, month: number) => {

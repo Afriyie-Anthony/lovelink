@@ -1,3 +1,5 @@
+import { useDiscoverStore } from "@/store/hooks/useDiscoveryStore";
+import { DiscoverFilters } from "@/store/types/Auth";
 import api from "./api";
 import { useAuthStore, useUserStorage } from "@/store/hooks/useAuthStore";
 
@@ -85,7 +87,7 @@ export const manualSignUp = async (data: any) => {
         type: data.profilePicture.type,
         name: data.profilePicture.fileName
     } as any);
-    
+
     formData.append('birthDate', new Date(data.birthDate).toISOString())
     formData.append('gender', data.gender);
     data.interests.forEach((interest: string) => {
@@ -101,18 +103,18 @@ export const manualSignUp = async (data: any) => {
     console.log("Form:", formData)
 
 
-        const response = await api.post("/auth/manual/signup", formData, {
-            headers: {
-                "Content-Type": "multipart/form-data",
-            },
-        })
-        useAuthStore.getState().setUser(response.data.user)
-        useAuthStore.getState().setToken(response.data.token)
-        console.log("response", response)
-        
-        return response.data
-        
-  
+    const response = await api.post("/auth/manual/signup", formData, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+    })
+    useAuthStore.getState().setUser(response.data.user)
+    useAuthStore.getState().setToken(response.data.token)
+    console.log("response", response)
+
+    return response.data
+
+
 }
 
 export const getUser = async (userId: string) => {
@@ -121,3 +123,29 @@ export const getUser = async (userId: string) => {
     useUserStorage.getState().setUser(response.data)
     return response.data
 }
+
+export const fetchProfiles = async (filters: Partial<DiscoverFilters> = {}) => {
+  const store = useDiscoverStore.getState();
+
+  try {
+    const params = new URLSearchParams();
+    params.append('minAge', `${15}`);
+    params.append('maxAge', `${100}`);
+    params.append('limit', `${filters.limit || store.filters.limit}`);
+    params.append('page', `${filters.page || store.filters.page}`);
+
+    const response = await api.get(`/discover?${params.toString()}`);
+    const profiles = Array.isArray(response.data.data) ? response.data.data : [];
+
+    console.log("✅ API returned profiles:", profiles.length);
+
+    // Update store
+    store.setProfiles(profiles);
+
+    // Always return { profiles: [...] }
+    return { profiles };
+  } catch (error) {
+    console.error('❌ Error fetching profiles:', error);
+    return { profiles: [] }; // safe fallback
+  }
+};

@@ -18,6 +18,7 @@ export const useAuthStore = create<AuthState>()(
                 profile: { ...state.profile, ...data }
             })),
             clearProfileData: () => set({ profile: {} }),
+            clearToken: () => set({ token: null }),
         }), {
 
         name: "auth-storage", // key in AsyncStorage

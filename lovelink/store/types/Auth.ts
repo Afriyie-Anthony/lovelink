@@ -3,7 +3,7 @@ export type User = {
     fullName?: string
     email?: string
     password?: string
-    profilePicture?: string
+    profilePicture?: string | null
     bio?: string
     birthDate?: Date
     age?: number
@@ -12,6 +12,8 @@ export type User = {
     profession?: string
     education?: string
     height?: number
+    interests: string[]
+    gender:string
 }
 export type ProfileData = {
     fullName: string
@@ -25,13 +27,30 @@ export type ProfileData = {
     bio: string
     profession: string
     education: string
-    height: number 
+    height: number
     age?: number
     locate?: string
     phoneNumber?: string,
-  
+
 }
 
+export interface DiscoverFilters {
+  minAge: number;
+  maxAge: number;
+  profession?: string;
+  limit: number;
+  page: number;
+}
+
+export interface DiscoverState {
+  profiles: User[];
+  currentProfileIndex: number;
+  swipeDirection: 'left' | 'right' | null;
+  filters: DiscoverFilters;
+  matches: string[]; // Store matched profile IDs
+  likes: string[];   // Store liked profile IDs
+  dislikes: string[]; // Store disliked profile IDs
+}
 
 export type AuthState = {
     user: User | null
@@ -41,8 +60,10 @@ export type AuthState = {
     logout: () => void
     profile: ProfileData | {}
     setProfileData: (data: Partial<ProfileData>) => void;
-    clearProfileData: () => void;
     
+    clearProfileData: () => void;
+    clearToken: () => void
+
     // loading: boolean
     // error: string | null
 }

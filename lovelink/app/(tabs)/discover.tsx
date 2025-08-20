@@ -1,11 +1,13 @@
 import React, { useEffect, useRef, useCallback, useMemo } from 'react';
-import { View, Text, TouchableOpacity, Image, Animated, Dimensions, PanResponder } from 'react-native';
+import { View, Text, TouchableOpacity, Image, Animated, Dimensions, PanResponder, Alert, ActivityIndicator } from 'react-native';
+
 import Ionicons from '@expo/vector-icons/Ionicons';
 import FilterModal from '../../components/FilterModal';
 
 
 import { useDiscoverStore } from '@/store/hooks/useDiscoveryStore';
-import { fetchProfiles } from '@/api/auth';
+import { fetchProfiles, matchUser } from '@/api/auth';
+import { useMatchStore } from '@/store/hooks/useMatchState';
 
 const { width } = Dimensions.get('window');
 
@@ -39,6 +41,9 @@ export default function Discover() {
   const panX = useRef(new Animated.Value(0)).current;
 
   const [showFilters, setShowFilters] = React.useState(false);
+  const [refreshing, setRefreshing] = React.useState(false);
+  const [imageLoading, setImageLoading] = React.useState(true);
+
 
   // Fetch profiles once on mount
   useEffect(() => {
@@ -60,7 +65,34 @@ export default function Discover() {
     })();
   }, [filters, setProfiles, setCurrentProfileIndex]);
 
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      const data = await fetchProfiles(filters);
+
+      if (!data || !Array.isArray(data.profiles)) {
+        console.warn("⚠️ fetchProfiles returned invalid data:", data);
+        return;
+      }
+
+      setProfiles(data.profiles);
+      setCurrentProfileIndex(0);
+    } catch (err) {
+      console.error("❌ Refresh failed:", err);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [filters, setProfiles, setCurrentProfileIndex]);
+
   const currentProfile = profiles[currentProfileIndex] || null;
+  useEffect(() => {
+    if (currentProfile?.profilePicture) {
+      setImageLoading(true);
+    } else {
+      setImageLoading(false);
+    }
+  }, [currentProfileIndex, currentProfile]);
   console.log("CurrentProfiles", currentProfile)
   console.log("Profiles length:", profiles.length, "Index:", currentProfileIndex);
 
@@ -159,13 +191,38 @@ export default function Discover() {
     ]).start();
   }, [currentProfileIndex, slideAnim, fadeAnim, scaleAnim, panX]);
 
-  const handleLike = () => handleNext();
+  const handleLike = async () => {
+    if (!currentProfile) return;
+    try {
+    console.log("Perfrom:work")
+      const result = await matchUser(currentProfile.id || "id")
+      console.log("result from match", result)
+      // if backend returns a new match → push into MatchStore
+      if (result.data.match) {
+        useMatchStore.getState().addMatch(result.data.match);
+      }
+
+      handleNext(); // continue to next profile
+    } catch (error: any) {
+      console.error("❌ Like failed:", error);
+      Alert.alert(error.response.data.message || 'Something went wrong.');
+
+    }
+  }
   const handleDislike = () => handlePrevious();
   const handleSuperLike = () => {
     if (currentProfile && currentProfile.fullName) {
       console.log('Super like:', currentProfile.fullName);
     }
   };
+  if (refreshing || (profiles.length === 0 && !currentProfile)) {
+    return (
+      <View className="flex-1 items-center justify-center bg-white">
+        <ActivityIndicator size="large" color="#ef4444" />
+        <Text className="text-gray-500 mt-2">Loading profiles...</Text>
+      </View>
+    );
+  }
 
   return (
     <View className="flex-1 bg-white">
@@ -185,31 +242,42 @@ export default function Discover() {
 
       {/* Profile Card */}
       <View className="flex-1 px-4 pt-2">
-        <Animated.View
-          className="flex-1 relative"
-          style={{
-            transform: [
-              { translateX: panX },
-              { scale: scaleAnim }
-            ],
-            opacity: fadeAnim,
-          }}
-          {...panResponder.panHandlers}
-        >
-          {currentProfile?.profilePicture ? (
-            <Image
-              source={{ uri: currentProfile?.profilePicture }}
-              style={{ width: '100%', height: '100%', backgroundColor: 'lightgray' }}
-              resizeMode="cover"
-            />
-          ) : (
-            <View className="flex-1 items-center justify-center bg-gray-200">
-              <Text className="text-gray-500">No profile picture</Text>
-            </View>
-          )}
-        </Animated.View>
+        {currentProfile && (
+          <Animated.View
+            key={currentProfile.id}
+            className="absolute inset-0 rounded-xl overflow-hidden"
+            style={{
+              transform: [{ translateX: panX }, { scale: 1 }],
+              opacity: fadeAnim,
+              zIndex: 2,
+            }}
+            {...panResponder.panHandlers}
+          >
+            {currentProfile.profilePicture ? (
+              <>
+                {imageLoading && (
+                  <View className="absolute inset-0 items-center justify-center bg-gray-200">
+                    <ActivityIndicator size="large" color="#ef4444" />
+                  </View>
+                )}
+                <Image
+                  source={{ uri: currentProfile.profilePicture }}
+                  style={{ width: "100%", height: "100%", backgroundColor: "lightgray" }}
+                  resizeMode="cover"
+                  onLoadStart={() => setImageLoading(true)}
+                  onLoadEnd={() => setImageLoading(false)}
+                />
+              </>
+            ) : (
+              <View className="flex-1 items-center justify-center bg-gray-200">
+                <Text className="text-gray-500">No profile picture</Text>
+              </View>
+            )}
+          </Animated.View>
+        )}
 
       </View>
+
 
       {/* Action Buttons */}
       <View className="flex-row justify-center items-center py-8 px-4">

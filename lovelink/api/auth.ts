@@ -149,3 +149,19 @@ export const fetchProfiles = async (filters: Partial<DiscoverFilters> = {}) => {
     return { profiles: [] }; // safe fallback
   }
 };
+export const matchUser = async (userId: string) => {
+    const response = await api.post(`/matches/like/`,{targetId:userId})
+    return response.data
+}
+
+export const unmatchUser = async (matchId:string)=>{
+    const response = await api.post(`/matches/unmatch`,{matchId})
+    console.log(response.data.data)
+    return response.data
+}
+
+export const getMatches = async ()=>{
+    const response = await api.get(`/matches/`)
+    console.log(response.data.data)
+    return response.data
+}
